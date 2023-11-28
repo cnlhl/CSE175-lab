@@ -95,19 +95,23 @@ def value(parent_state, ply):
         return state.payoff()
     elif ply >= max_ply:
         # the ply limit has been reached, so use the heuristic ...
+        # print('branch:1 ply:',ply,';current player:',state.current_turn,';time remaining:',state.time_remaining)
         return heuristic_value(state)
     elif state.time_remaining is not None and state.time_remaining > 0:
         # the current state of play is in the midst of a move action,
         # so the state needs to be updated to the end of the turn and
         # the value of the resulting state is returned ...
+        # print('branch:2 ply:',ply,';current player:',state.current_turn,';time remaining:',state.time_remaining)
         return expected_value_after_move(state, ply)
     elif state.need_action():
         # calculate the minimax value for this state of play, which is
         # the start of one of the player's turns ...
+        # print('branch:3 ply:',ply,';current player:',state.current_turn,';time remaining:',state.time_remaining)
         return minimax_value_over_actions(state, ply)
     else:
         # calculate the expected utility over all possible randomly
         # selected delay times of the current state of play ...
+        # print('barnch:4 ply:',ply,';current player:',state.current_turn,';time remaining:',state.time_remaining)
         return expected_value_over_delays(state, ply)
 
 
@@ -158,6 +162,7 @@ def max_value_over_actions(state, ply):
         state.action = act
         # calculate the value of the state of play resulting from
         # taking this action ...
+        # print(new_ply,' maxlayer, current player:',state.current_turn,';chosen action:',act,'ply:',ply)
         this_act_value = value(state, new_ply)
         # record the maximum value over actions ...
         if this_act_value > best_value:
@@ -184,6 +189,7 @@ def min_value_over_actions(state, ply):
         state.action = act
         # calculate the value of the state of play resulting from
         # taking this action ...
+        # print(new_ply,' minlayer, current player:',state.current_turn,';chosen action:',act,'ply:',ply)
         this_act_value = value(state, new_ply)
         # record the minimum value over actions ...
         if this_act_value < best_value:

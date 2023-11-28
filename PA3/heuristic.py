@@ -22,26 +22,28 @@
 # PLACE ANY COMMENTS, INCLUDING ACKNOWLEDGMENTS, HERE
 #
 # PLACE YOUR NAME AND THE DATE HERE
-#
+# Haolin Li 2023-11-26
 
 
+import copy
+import game
 from parameters import *
 from minimax import probability_of_time
 from minimax import value
-
 
 def expected_value_over_delays(state, ply):
     """Calculate the expected utility over all possible randomly selected
     Guardian delay times. Return this expected utility value."""
     val = 0.0
-
     # PLACE YOUR CODE HERE
     # Note that the value of "ply" must be passed along, without
     # modification, to any function calls that calculate the value 
     # of a state.
-
+    for i in range(min_time_steps, max_time_steps + 1):
+        tmp_state = copy.copy(state)
+        tmp_state.time_remaining = i
+        val += probability_of_time(i) * value(tmp_state, ply+1)
     return val
-
 
 def heuristic_value(state):
     """Return an estimate of the expected payoff for the given state of
@@ -49,7 +51,28 @@ def heuristic_value(state):
     be between the maximum payoff value and the additive inverse of the
     maximum payoff."""
     val = 0.0
-
-    # PLACE YOUR CODE HERE
-
+    act = state.action
+    A, B = 15, 10
+    if state.need_time():
+        risk_factor = 0
+        for i in range(min_time_steps, max_time_steps + 1):
+            if i > state.action:
+                risk_factor += probability_of_time(i) * state.action
+            else:
+                risk_factor -= probability_of_time(i) * state.action
+        if state.current_turn == Player.east:
+            risk_factor = -risk_factor
+        
+    else:
+        state.complete_turn()
+        state.check_for_winner()
+        if state.terminal_state():
+            risk_factor = state.payoff()
+        else:
+            risk_factor = 0
+            
+    distance_factor = state.e_loc + state.w_loc
+    val = A * distance_factor + B * risk_factor
+    # print('action:',act,'distance_factor:', distance_factor, 'risk_factor:', risk_factor, 'heuristic_value:', val)
+    
     return val
