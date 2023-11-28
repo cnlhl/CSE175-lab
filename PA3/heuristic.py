@@ -26,7 +26,6 @@
 
 
 import copy
-import game
 from parameters import *
 from minimax import probability_of_time
 from minimax import value
@@ -36,13 +35,20 @@ def expected_value_over_delays(state, ply):
     Guardian delay times. Return this expected utility value."""
     val = 0.0
     # PLACE YOUR CODE HERE
-    # Note that the value of "ply" must be passed along, without
-    # modification, to any function calls that calculate the value 
-    # of a state.
+    
+    # this procedure also expands the tree
+    # if we don't increase the ply, the tree will be too large and the program will be too slow
+    # but if we increase the ply every time, the tree will be too small
+    # so we need to increase the ply only when it is east's turn
+    if state.current_turn == Player.east:
+        ply += 1
+    
+    # estimate the expected value of the state over all possible random results
+    # give different delay time with different value weight (probablity weighted average)
     for i in range(min_time_steps, max_time_steps + 1):
         tmp_state = copy.copy(state)
         tmp_state.time_remaining = i
-        val += probability_of_time(i) * value(tmp_state, ply+1)
+        val += probability_of_time(i) * value(tmp_state, ply)
     return val
 
 def heuristic_value(state):
@@ -51,8 +57,13 @@ def heuristic_value(state):
     be between the maximum payoff value and the additive inverse of the
     maximum payoff."""
     val = 0.0
-    act = state.action
-    A, B = 15, 10
+    
+    # A and B are the weight of distance and risk factor
+    # adjust the weight to make startegy more aggressive or conservative
+    A, B = 12, 10
+    
+    # if time is needed, which means the parent layer is min/max layer
+    # estimate the expexted foward steps(risk_factor) by taking the time probability weighted average
     if state.need_time():
         risk_factor = 0
         for i in range(min_time_steps, max_time_steps + 1):
@@ -61,18 +72,28 @@ def heuristic_value(state):
             else:
                 risk_factor -= probability_of_time(i) * state.action
         if state.current_turn == Player.east:
+        # if it is east's turn, the risk factor should be reversed
             risk_factor = -risk_factor
         
     else:
+    # if no time is needed, which means the parent layer is delay layer(expected_value_over_delays)
+    # in this case, action is set by min/max layer, and time is set by delay layer
+    # so we can directly update the state to the next state
         state.complete_turn()
         state.check_for_winner()
         if state.terminal_state():
+        # if the next state is terminal state, we can get the payoff
             risk_factor = state.payoff()
         else:
+        # the impact of state.action and state.time_remaining is already reflected in the position(distance_factor)
             risk_factor = 0
-            
+      
+    # distance_factor finds the sum of the distance of two players
+    # because the west player distance is negative, east player distance is positive
+    # if west player is closer to the treasure, the distance_factor will be positive
+    # if east player is closer to the treasure, the distance_factor will be negative      
     distance_factor = state.e_loc + state.w_loc
+    
     val = A * distance_factor + B * risk_factor
-    # print('action:',act,'distance_factor:', distance_factor, 'risk_factor:', risk_factor, 'heuristic_value:', val)
     
     return val
