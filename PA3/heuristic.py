@@ -39,7 +39,7 @@ def expected_value_over_delays(state, ply):
     # this procedure also expands the tree
     # if we don't increase the ply, the tree will be too large and the program will be too slow
     # but if we increase the ply every time, the tree will be too small
-    # so we need to increase the ply only when it is east's turn
+    # so we increase the ply only when it is east's turn
     if state.current_turn == Player.east:
         ply += 1
     
@@ -78,15 +78,9 @@ def heuristic_value(state):
     else:
     # if no time is needed, which means the parent layer is delay layer(expected_value_over_delays)
     # in this case, action is set by min/max layer, and time is set by delay layer
-    # so we can directly update the state to the next state
-        state.complete_turn()
-        state.check_for_winner()
-        if state.terminal_state():
-        # if the next state is terminal state, we can get the payoff
-            risk_factor = state.payoff()
-        else:
-        # the impact of state.action and state.time_remaining is already reflected in the position(distance_factor)
-            risk_factor = 0
+    # so we can directly update the state to the next state, and calculate the heuristic value 
+    # by recursively calling heuristic_value to enter the first if statement
+        return value(state,max_ply-1)
       
     # distance_factor finds the sum of the distance of two players
     # because the west player distance is negative, east player distance is positive
