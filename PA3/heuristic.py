@@ -24,7 +24,6 @@
 # PLACE YOUR NAME AND THE DATE HERE
 # Haolin Li 2023-11-26
 
-
 import copy
 from parameters import *
 from minimax import probability_of_time
@@ -35,13 +34,6 @@ def expected_value_over_delays(state, ply):
     Guardian delay times. Return this expected utility value."""
     val = 0.0
     # PLACE YOUR CODE HERE
-    
-    # this procedure also expands the tree
-    # if we don't increase the ply, the tree will be too large and the program will be too slow
-    # but if we increase the ply every time, the tree will be too small
-    # so we increase the ply only when it is east's turn
-    if state.current_turn == Player.east:
-        ply += 1
     
     # estimate the expected value of the state over all possible random results
     # give different delay time with different value weight (probablity weighted average)
@@ -56,38 +48,35 @@ def heuristic_value(state):
     game play without performing any look-ahead search. This value must
     be between the maximum payoff value and the additive inverse of the
     maximum payoff."""
-    val = 0.0
+    val = 0.0    
     
-    # A and B are the weight of distance and risk factor
-    # adjust the weight to make startegy more aggressive or conservative
-    A, B = 12, 10
+    # A, B, C, D are the weight for each factor
+    # adjust the weight control the strategy of the computer player
+    A,B,C,D = 20, 30, 20, 30
     
-    # if time is needed, which means the parent layer is min/max layer
-    # estimate the expexted foward steps(risk_factor) by taking the time probability weighted average
-    if state.need_time():
-        risk_factor = 0
-        for i in range(min_time_steps, max_time_steps + 1):
-            if i > state.action:
-                risk_factor += probability_of_time(i) * state.action
-            else:
-                risk_factor -= probability_of_time(i) * state.action
-        if state.current_turn == Player.east:
-        # if it is east's turn, the risk factor should be reversed
-            risk_factor = -risk_factor
-        
-    else:
-    # if no time is needed, which means the parent layer is delay layer(expected_value_over_delays)
-    # in this case, action is set by min/max layer, and time is set by delay layer
-    # so we can directly update the state to the next state, and calculate the heuristic value 
-    # by recursively calling heuristic_value to enter the first if statement
-        return value(state,max_ply-1)
-      
-    # distance_factor finds the sum of the distance of two players
-    # because the west player distance is negative, east player distance is positive
-    # if west player is closer to the treasure, the distance_factor will be positive
-    # if east player is closer to the treasure, the distance_factor will be negative      
+    w_distance = abs(state.w_loc)
+    e_distance = abs(state.e_loc)
+    
+    # the closer to the center, the value of this two factor grows bigger
+    # for the computer player, when it gets closer to the center, it's stragety can be more aggressive
+    # for the opponent, when it gets closer to the center, it's stragety can be more defensive
+    # reflected on the value, we set aggressive_factor to be positive, defensive_factor to be negative
+    aggressive_factor = 1/w_distance
+    defensive_factor = 1/e_distance
+    
+    # since e_loc is set to be positive, w_loc is set to be negative
+    # the sum of them can reflect the relative distance between the two players
+    # the bigger the sum, the better for the computer player (closer to the center)
     distance_factor = state.e_loc + state.w_loc
     
-    val = A * distance_factor + B * risk_factor
+    # heuristic function is called within min_value_over_actions() and max_value_over_actions()
+    # there're extra information(action steps) in state, which can be used to adjust the strategy
+    # the bigger the action, the more risky the strategy is, when the current turn is the computer player
+    # the smaller the risky factor, the better for the computer player
+    # correspondingly, when the current turn is the opponent, the bigger the risky factor, the better for the computer player
+    risk_factor = state.action/4
+    if state.current_turn == Player.east:
+        risk_factor = - risk_factor
     
+    val = A * distance_factor + B * aggressive_factor - C * defensive_factor - D *risk_factor
     return val
