@@ -12,10 +12,13 @@
 # ALSO, PROVIDE ANSWERS TO THE FOLLOWING TWO QUESTIONS.
 #
 # Which network architecture achieves the lowest training set error?
+# the third one AnnTwoHid() acheives the lowest training set error
+
 # Which network architecture tends to exhibit the best testing set accuracy?
+# also the third one AnnTwoHid() tends to exhibit the best testing set accuracy
 #
 # PLACE YOUR NAME AND THE DATE HERE
-#
+# Haolin Li 12/1/2023
 
 # PyTorch - Deep Learning Models
 import torch.nn as nn
@@ -35,9 +38,13 @@ class AnnLinear(nn.Module):
     def __init__(self):
         super().__init__()
         # PLACE NETWORK ARCHITECTURE CODE HERE
+        self.fc1 = nn.Linear(input_size, output_size)
+        
 
     def forward(self, x):
         # PLACE YOUR FORWARD PASS CODE HERE
+        fc1 = self.fc1(x)
+        y_hat = fc1
         return y_hat
 
 
@@ -48,9 +55,15 @@ class AnnOneHid(nn.Module):
     def __init__(self):
         super().__init__()
         # PLACE NETWORK ARCHITECTURE CODE HERE
+        self.fc1 = nn.Linear(input_size, 20)
+        self.fc2 = nn.Linear(20, output_size)
 
     def forward(self, x):
         # PLACE YOUR FORWARD PASS CODE HERE
+        fc1 = self.fc1(x)
+        relu = F.relu(fc1)
+        fc2 = self.fc2(relu)
+        y_hat = fc2
         return y_hat
 
 
@@ -61,7 +74,16 @@ class AnnTwoHid(nn.Module):
     def __init__(self):
         super().__init__()
         # PLACE NETWORK ARCHITECTURE CODE HERE
+        self.fc1 = nn.Linear(input_size, 16)
+        self.fc2 = nn.Linear(16, 12)
+        self.fc3 = nn.Linear(12, output_size)
 
     def forward(self, x):
         # PLACE YOUR FORWARD PASS CODE HERE
+        fc1 = self.fc1(x)
+        relu1 = F.relu(fc1)
+        fc2 = self.fc2(relu1)
+        relu2 = F.relu(fc2)
+        fc3 = self.fc3(relu2)
+        y_hat = fc3
         return y_hat
